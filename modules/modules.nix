@@ -80,6 +80,7 @@ let
     ./programs/cmus.nix
     ./programs/command-not-found/command-not-found.nix
     ./programs/comodoro.nix
+    ./programs/cosmic.nix
     ./programs/darcs.nix
     ./programs/dircolors.nix
     ./programs/direnv.nix

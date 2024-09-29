@@ -16,7 +16,12 @@
     mapAttrs'
     nameValuePair
     boolToString
+    maintainers
+    mkOption
     ;
+  inherit (lib.types)
+    listOf submodule str nullOr either oneOf int literalExpression attrsOf
+    anything;
   inherit (builtins) typeOf toString stringLength;
 
   # build up serialisation machinery from here for various types
@@ -24,15 +29,12 @@
   # list -> array
   array = a: "[${concatStringsSep "," a}]";
   # attrset -> hashmap
-  _assoc = a: mapAttrsToList (name: val: "${name}: ${val}") a;
+  _assoc = a: mapAttrsToList (name: val: "${name}: ${val},") a;
   assoc = a: ''
     {
-        ${
-      concatStringsSep ''
-        ,
-      '' (concatLists (map _assoc a))
+        ${concatStringsSep "\n    " (concatLists (map _assoc a))}
     }
-        }'';
+    '';
   # attrset -> struct
   _struct_kv = k: v:
     if v == null
@@ -102,22 +104,23 @@
     options.option;
 
   cfg = config.programs.cosmic;
-in {
-  meta.maintainers = [hm.maintainers.atagen];
-  options.programs.cosmic = {
-    enable = with lib; mkEnableOption "COSMIC DE";
 
-    defaultKeybindings = with lib;
-      mkOption {
+in {
+  meta.maintainers = [maintainers.atagen];
+  options.programs.cosmic = {
+    enable = lib.mkEnableOption "COSMIC DE";
+
+    defaultKeybindings =
+      lib.mkOption {
         default = true;
-        type = types.bool;
+        type = lib.types.bool;
         description = "Whether to enable the default COSMIC keybindings.";
       };
 
-    keybindings = with lib;
-      mkOption {
+    keybindings =
+      lib.mkOption {
         default = [];
-        type = with types;
+        type =
           listOf (submodule {
             options = {
               modifiers = mkOption {
@@ -173,10 +176,10 @@ in {
         '';
       };
 
-    settings = with lib;
+    settings =
       mkOption {
         default = {};
-        type = with types;
+        type =
           attrsOf (submodule {
             options = {
               version = mkOption {
@@ -202,8 +205,10 @@ in {
   config = lib.mkIf cfg.enable {
     xdg.configFile =
       {
-        "cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom".text =
-          (lib.mkIf cfg.keybindings != []) mapBindings cfg.keybindings;
+        "cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom" = {
+          text = mapBindings cfg.keybindings;
+          enable = cfg.keybindings != [];
+        };
         "cosmic/com.system76.CosmicSettings.Shortcuts/v1/defaults" = {
           text = "{}";
           enable = !cfg.defaultKeybindings;
