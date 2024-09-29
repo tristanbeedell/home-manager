@@ -18,16 +18,17 @@
     boolToString
     maintainers
     mkOption
+    types
     ;
-  inherit (lib.types)
-    listOf submodule str nullOr either oneOf int literalExpression attrsOf
+  inherit (types)
+    listOf submodule nullOr either oneOf literalExpression attrsOf
     anything;
   inherit (builtins) typeOf toString stringLength;
 
   # build up serialisation machinery from here for various types
 
   # list -> array
-  array = a: "[${concatStringsSep "," a}]";
+  array = a: ''[${concatStringsSep "," (map serialise a)}]'';
   # attrset -> hashmap
   _assoc = a: mapAttrsToList (name: val: "${name}: ${val},") a;
   assoc = a: ''
@@ -39,7 +40,7 @@
   _struct_kv = k: v:
     if v == null
     then ""
-    else (concatStringsSep ":" [k (serialise.${typeOf v} v)]);
+    else (concatStringsSep ": " [k (serialise v)]);
   _struct_concat = s:
     foldlAttrs (acc: k: v:
       if stringLength acc > 0
@@ -49,18 +50,22 @@
   _struct_filt = s: _struct_concat (filterAttrs (k: v: v != null) s);
   struct = s: "(${_struct_filt s})";
   toQuotedString = s: ''"${toString s}"'';
+  path = p: ''Path("${p}")'';
 
   # make an attrset for struct serialisation
-  serialise = {
+  _serialisers = {
     int = toString;
     float = toString;
     bool = boolToString;
+    # can't assume quoted string, sometimes it's a Rust enum
     string = toString;
-    path = toString;
+    path = path;
     null = toString;
     set = struct;
     list = array;
   };
+
+  serialise = v: _serialisers.${typeOf v} v;
 
   # define the key for a keybind
   defineBinding = binding:
@@ -86,24 +91,53 @@
     if typeOf a == "set" && a.type == "Spawn"
     then {
       inherit (a) type;
-      data = toQuotedString a.data;
+      value = toQuotedString a.value;
     }
     else a;
 
   maybeToString = s:
     if typeOf s == "set"
-    then concatStrings [s.type "(" (toString s.data) ")"]
+    then concatStrings [s.type "(" (serialise s.value) ")"]
     else s;
 
   mapCosmicSettings = application: options:
     mapAttrs' (k: v:
       nameValuePair "cosmic/${application}/v${options.version}/${k}" {
         enable = true;
-        text = serialise.${typeOf v} v;
+        text = serialise v;
       })
-    options.option;
+    options.options;
+
+  scalingToString = {mode, color}: if mode == "Fit"
+    then "Fit((${concatStringsSep "," (map toString color)}))"
+    else mode;
+
+  _mapBackground = display: background: {
+    "cosmic/com.system76.CosmicBackground/v1/${if display == "all" then "all" else "output.${display}"}" = {
+      text = serialise {
+        inherit (background)
+          filter_by_theme filter_method sampling_method rotation_frequency;
+        scaling_mode = scalingToString background.scaling;
+        output = toQuotedString display;
+        source = path background.source;
+      };
+    };
+  };
+  mapBackgrounds = backgrounds: (concatMapAttrs _mapBackground backgrounds)
+  // {
+    "cosmic/com.system76.CosmicBackground/v1/backgrounds" = {
+      text = array (map toQuotedString (builtins.attrNames backgrounds));
+    };
+  };
 
   cfg = config.programs.cosmic;
+
+  enumOf = type: submodule {
+    options = {
+      type = mkOption {type = types.str;};
+      value = mkOption {inherit type;};
+    };
+  };
 
 in {
   meta.maintainers = [maintainers.atagen];
@@ -124,23 +158,18 @@ in {
           listOf (submodule {
             options = {
               modifiers = mkOption {
-                type = listOf str;
+                type = listOf types.str;
                 default = [];
               };
               key = mkOption {
-                type = nullOr str;
+                type = nullOr types.str;
                 default = null;
               };
               action = mkOption {
-                type = either str (submodule {
-                  options = {
-                    type = mkOption {type = str;};
-                    data = mkOption {
-                      type = oneOf [str int];
-                      default = "";
-                    };
-                  };
-                });
+                type = oneOf [
+                  (types.enum types.str)
+                  (enumOf (either types.str types.int))
+                ];
               };
             };
           });
@@ -156,7 +185,7 @@ in {
               modifiers = ["Super"];
               action = {
                 type = "Spawn";
-                data = "kitty";
+                value = "kitty";
               };
             }
             # Only mod - activates if no key is pressed with the modifier
@@ -164,17 +193,90 @@ in {
               modifiers = ["Super"];
               action = {
                 type = "Spawn";
-                data = "wofi";
+                value = "wofi";
               }
             }
             # Key only and plain action
             {
-              key = "G";
+              key = "g";
               action = "ToggleWindowFloating";
             }
           ]
         '';
       };
+
+    background = mkOption {
+      default = {};
+      description = ''
+        Wallpaper Options.
+
+        COSMIC appears to immediately override the same on all displays option,
+        so this must be set via the GUI...
+      '';
+      type = submodule {
+        options = {
+          displays = mkOption {
+            default = {};
+            example = literalExpression ''
+              {
+                DP-1 = {
+                  image = ./image.png;
+                };
+              };
+            '';
+            type = attrsOf (submodule {
+              options = {
+                source = mkOption {
+                  type = either types.path types.str;
+                };
+                filter_by_theme = mkOption {
+                  default = true;
+                  type = types.bool;
+                };
+                filter_method = mkOption {
+                  default = "Lanczos";
+                  # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L155
+                  type = types.enum ["Lanczos" "Linear" "Nearest"];
+                };
+                sampling_method = mkOption {
+                  default = "Alphanumeric";
+                  description = ''
+                    How next image in wallpaper slideshow will be picked
+                  '';
+                  # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L177
+                  type = types.enum ["Alphanumeric" "Random"];
+                };
+                rotation_frequency = mkOption {
+                  type = types.int;
+                  default = 300;
+                  description = ''
+                    How often to change image in seconds.
+                  '';
+                };
+                scaling = mkOption {
+                  default = {};
+                  type = submodule {
+                  options = {
+                    mode = mkOption {
+                      default = "Zoom";
+# https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L188
+                      type = (types.enum [ "Zoom" "Stretch" "Fit" ]);
+                    };
+                    color = mkOption {
+                      description = ''
+                        The colour to display around the background image when using Fit scaling mode.
+                        '';
+                      default = [0.0 0.0 0.0];
+                      type = types.listOf types.float;
+                    };
+                  };
+                }; };
+              };
+            });
+          };
+        };
+      };
+    };
 
     settings =
       mkOption {
@@ -183,10 +285,10 @@ in {
           attrsOf (submodule {
             options = {
               version = mkOption {
-                type = str;
+                type = types.str;
                 default = "1";
               };
-              option = mkOption {type = attrsOf anything;};
+              options = mkOption {type = attrsOf anything;};
             };
           });
         description = ''
@@ -214,6 +316,8 @@ in {
           enable = !cfg.defaultKeybindings;
         };
       }
+      // (if (cfg.background.displays != {})
+        then (mapBackgrounds cfg.background.displays) else {})
       // concatMapAttrs
       (application: options: mapCosmicSettings application options)
       cfg.settings;

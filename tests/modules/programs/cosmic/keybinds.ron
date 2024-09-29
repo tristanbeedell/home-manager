@@ -1,5 +1,6 @@
 {
-    (key:"G", modifiers:[Super]): Disable,
-    (key:"G", modifiers:[Super,Shift]): ToggleWindowFloating,
-    (key:"Return", modifiers:[Super]): Spawn("kitty"),
+    (key: "g", modifiers: [Super]): Disable,
+    (key: "g", modifiers: [Super,Shift]): ToggleWindowFloating,
+    (key: "Return", modifiers: [Super]): Spawn("kitty"),
+    (key: "1", modifiers: [Super]): Workspace(1),
 }

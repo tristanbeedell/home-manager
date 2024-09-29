@@ -3,24 +3,32 @@
     programs.cosmic = {
       enable = true;
       keybindings = [
-      {
-        modifiers = ["Super"];
-        key = "G";
-        action = "Disable";
-      }
-      {
-        modifiers = ["Super" "Shift"];
-        key = "G";
-        action = "ToggleWindowFloating";
-      }
-      {
-        modifiers = ["Super"];
-        key = "Return";
-        action = {
-          type = "Spawn";
-          data = "kitty";
-        };
-      }
+        {
+          modifiers = ["Super"];
+          key = "g";
+          action = "Disable";
+        }
+        {
+          modifiers = ["Super" "Shift"];
+          key = "g";
+          action = "ToggleWindowFloating";
+        }
+        {
+          modifiers = ["Super"];
+          key = "Return";
+          action = {
+            type = "Spawn";
+            value = "kitty";
+          };
+        }
+        {
+          modifiers = ["Super"];
+          key = "1";
+          action = {
+            type = "Workspace";
+            value = 1;
+          };
+        }
       ];
     };
 
