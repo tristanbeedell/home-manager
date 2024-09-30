@@ -1,52 +1,16 @@
 { pkgs, lib, config, ... }:
 let
   inherit (lib)
-    filterAttrs concatStrings concatStringsSep mapAttrsToList concatLists
-    foldlAttrs concatMapAttrs mapAttrs' nameValuePair boolToString maintainers
-    mkOption types;
+    concatStrings concatStringsSep concatMapAttrs mapAttrs' nameValuePair
+    maintainers mkOption types;
   inherit (types)
     listOf submodule nullOr either oneOf literalExpression attrsOf anything;
   inherit (builtins) typeOf toString stringLength;
 
+  ron = import ./ron.nix { inherit lib; };
+  inherit (ron) array struct toQuotedString assoc serialise path;
+
   # build up serialisation machinery from here for various types
-
-  # list -> array
-  array = a: "[${concatStringsSep "," (map serialise a)}]";
-  # attrset -> hashmap
-  _assoc = a: mapAttrsToList (name: val: "${name}: ${val},") a;
-  assoc = a: ''
-    {
-        ${concatStringsSep "\n    " (concatLists (map _assoc a))}
-    }
-  '';
-  # attrset -> struct
-  _struct_kv = k: v:
-    if v == null then "" else (concatStringsSep ": " [ k (serialise v) ]);
-  _struct_concat = s:
-    foldlAttrs (acc: k: v:
-      if stringLength acc > 0 then
-        concatStringsSep ", " [ acc (_struct_kv k v) ]
-      else
-        _struct_kv k v) "" s;
-  _struct_filt = s: _struct_concat (filterAttrs (k: v: v != null) s);
-  struct = s: "(${_struct_filt s})";
-  toQuotedString = s: ''"${toString s}"'';
-  path = p: ''Path("${p}")'';
-
-  # make an attrset for struct serialisation
-  _serialisers = {
-    int = toString;
-    float = toString;
-    bool = boolToString;
-    # can't assume quoted string, sometimes it's a Rust enum
-    string = toString;
-    path = path;
-    null = toString;
-    set = struct;
-    list = array;
-  };
-
-  serialise = v: _serialisers.${typeOf v} v;
 
   # define the key for a keybind
   defineBinding = binding:
@@ -86,7 +50,7 @@ let
 
   scalingToString = { mode, color }:
     if mode == "Fit" then
-      "Fit((${concatStringsSep "," (map toString color)}))"
+      "Fit(${ron.tuple color})"
     else
       mode;
 
@@ -293,4 +257,6 @@ in {
       (application: options: mapCosmicSettings application options)
       cfg.settings;
   };
+
+  imports = [ ./cosmic-panels.nix ];
 }
