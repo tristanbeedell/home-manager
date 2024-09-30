@@ -144,10 +144,7 @@ in {
             default = null;
           };
           action = mkOption {
-            type = oneOf [
-              (types.enum types.str)
-              (enumOf (either types.str types.int))
-            ];
+            type = oneOf [ types.str (enumOf (either types.str types.int)) ];
           };
         };
       });
