@@ -625,4 +625,10 @@
     keys =
       [{ fingerprint = "BC82 4BB5 1656 D144 285E  A0EC D382 C4AF EECE AA90"; }];
   };
+  tristan = {
+    name = "tristan";
+    email = "tristan@tristans.cloud";
+    github = "tristanbeedell";
+    githubId = 42355774;
+  };
 }
