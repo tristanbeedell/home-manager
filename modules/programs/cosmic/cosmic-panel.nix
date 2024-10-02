@@ -7,11 +7,12 @@ let
   cfg = config.programs.cosmic;
 
   mapApplets = applets: {
-    plugins_wings = ''
-      Some(${ron.tuple [
-        (ron.stringArray applets.start)
-        (ron.stringArray applets.end)
-      ]})'';
+    plugins_wings = "Some(${
+        ron.tuple [
+          (ron.stringArray applets.start)
+          (ron.stringArray applets.end)
+        ]
+      })";
     plugins_center = "Some(${ron.stringArray applets.center})";
   };
   mapPanel = panel: panel.options // mapApplets panel.applets;
