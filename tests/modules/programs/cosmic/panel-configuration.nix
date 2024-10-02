@@ -33,10 +33,7 @@
         home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings \
         ${
           pkgs.writeText "plugins_wings" ''
-            Some((
-              ["com.system76.CosmicAppletWorkspaces"],
-              ["com.system76.CosmicAppletTime","com.system76.CosmicAppletAudio"]
-            ))''
+            Some((["com.system76.CosmicAppletWorkspaces"],["com.system76.CosmicAppletTime","com.system76.CosmicAppletAudio"]))''
         }
 
       assertFileContent \

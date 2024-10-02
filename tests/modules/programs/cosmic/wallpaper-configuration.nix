@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   config = {
@@ -21,6 +21,10 @@
     };
 
     nmt.script = ''
+      assertDirectoryExists home-files/.config/cosmic
+
+      assertFileContent home-files/.config/cosmic/com.system76.CosmicBackground/v1/backgrounds \
+        ${pkgs.writeText "backgrounds" ''["DP-1","HDMI-A-1","HDMI-A-2"]''}
 
       assertFileContent \
         home-files/.config/cosmic/com.system76.CosmicBackground/v1/output.HDMI-A-1 \
@@ -43,8 +47,6 @@
             (filter_by_theme: true, filter_method: Lanczos, output: "DP-1", rotation_frequency: 300, sampling_method: Alphanumeric, scaling_mode: Zoom, source: Path("~/Wallpapers"))''
         }
 
-      assertFileContent home-files/.config/cosmic/com.system76.CosmicBackground/v1/backgrounds \
-        ${pkgs.writeText "backgrounds" ''["DP-1","HDMI-A-1","HDMI-A-2"]''}
     '';
   };
 }
