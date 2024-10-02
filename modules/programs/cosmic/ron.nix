@@ -19,6 +19,11 @@ in rec {
   stringArray = a: array (map toQuotedString a);
 
   tuple = a: "(${concatStringsSep "," (map serialise a)})";
+  enum = s:
+    if isNull s.value then
+      s.type
+    else
+      concatStrings [ s.type "(" (serialise s.value) ")" ];
 
   # attrset -> struct
   _struct_kv = k: v:

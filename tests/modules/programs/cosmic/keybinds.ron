@@ -1,6 +1,6 @@
 {
     (key: "g", modifiers: [Super]): Disable,
     (key: "g", modifiers: [Super,Shift]): ToggleWindowFloating,
-    (key: "Return", modifiers: [Super]): Spawn("kitty"),
+    (key: "Return", modifiers: [Super]): Spawn("/nix/store/nmmyb8ac95qkd13h610ppfg46imwvgxw-script/bin/script"),
     (key: "1", modifiers: [Super]): Workspace(1),
 }

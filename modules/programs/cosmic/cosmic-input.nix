@@ -2,12 +2,13 @@
 let
   inherit (builtins) typeOf;
 
-  inherit (lib) mkOption types concatStrings;
-  inherit (types) listOf submodule nullOr either oneOf;
+  inherit (lib) mkOption types;
+  inherit (types) listOf submodule nullOr either;
 
   ron = import ./ron.nix { inherit lib; };
-  inherit (ron) struct toQuotedString assoc serialise;
-  cfg = config.programs.cosmic.input;
+  inherit (ron) struct toQuotedString assoc;
+
+  actions = import ./actions.nix { inherit lib; };
 
   # define the key for a keybind
   defineBinding = binding:
@@ -19,33 +20,18 @@ let
   # map keybinding from list of attrset to hashmap of (mod,key): action
   _mapBindings = bindings:
     map (inner: {
-      "${defineBinding inner}" = maybeToString (checkAction inner.action);
+      "${defineBinding inner}" = actionToString {
+        inherit (inner) value;
+        type = inner.action;
+      };
     }) bindings;
   mapBindings = bindings: assoc (_mapBindings bindings);
 
-  # check a keybinding's action
-  # escape with quotes if it's a Spawn action
-  checkAction = a:
-    if typeOf a == "set" && a.type == "Spawn" then {
-      inherit (a) type;
-      value = toQuotedString a.value;
-    } else
-      a;
+  actionToString = action:
+    assert actions.check action;
+    ron.enum (actions.coerce action);
 
-  maybeToString = s:
-    if typeOf s == "set" then
-      concatStrings [ s.type "(" (serialise s.value) ")" ]
-    else
-      s;
-
-  enumOf = type:
-    submodule {
-      options = {
-        type = mkOption { type = types.str; };
-        value = mkOption { inherit type; };
-      };
-    };
-
+  cfg = config.programs.cosmic.input;
 in {
   options.programs.cosmic.input = mkOption {
     default = { };
@@ -63,16 +49,18 @@ in {
           type = listOf (submodule {
             options = {
               modifiers = mkOption {
-                type = listOf types.str;
-                default = [ ];
+                type = listOf actions.Modifier;
+                default = [ "Super" ];
               };
               key = mkOption {
                 type = nullOr types.str;
                 default = null;
               };
-              action = mkOption {
-                type =
-                  oneOf [ types.str (enumOf (either types.str types.int)) ];
+              action = mkOption { type = actions.ActionsNameType; };
+              value = mkOption {
+                default = null;
+                type = types.nullOr
+                  (types.oneOf [ types.str types.int types.package ]);
               };
             };
           });

@@ -1,4 +1,4 @@
-{
+{ pkgs, ... }: {
   config = {
     programs.cosmic = {
       enable = true;
@@ -17,18 +17,14 @@
           {
             modifiers = [ "Super" ];
             key = "Return";
-            action = {
-              type = "Spawn";
-              value = "kitty";
-            };
+            action = "Spawn";
+            value = pkgs.writeShellScriptBin "script" "";
           }
           {
             modifiers = [ "Super" ];
             key = "1";
-            action = {
-              type = "Workspace";
-              value = 1;
-            };
+            action = "Workspace";
+            value = 1;
           }
         ];
       };

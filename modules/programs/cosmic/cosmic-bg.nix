@@ -9,15 +9,13 @@ let
   scalingToString = { mode, color }:
     if mode == "Fit" then "Fit(${ron.tuple color})" else mode;
   _mapBackground = display: background: {
-    ${
-      if display == "all" then "all" else "output.${display}"
-    } = serialise {
-        inherit (background)
-          filter_by_theme filter_method sampling_method rotation_frequency;
-        scaling_mode = scalingToString background.scaling;
-        output = toQuotedString display;
-        source = path background.source;
-      };
+    ${if display == "all" then "all" else "output.${display}"} = serialise {
+      inherit (background)
+        filter_by_theme filter_method sampling_method rotation_frequency;
+      scaling_mode = scalingToString background.scaling;
+      output = toQuotedString display;
+      source = path background.source;
+    };
   };
   mapBackgrounds = backgrounds:
     (concatMapAttrs _mapBackground backgrounds) // {
