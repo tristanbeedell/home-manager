@@ -1,6 +1,10 @@
 {
-    (key: "g", modifiers: [Super]): Disable,
-    (key: "g", modifiers: [Super,Shift]): ToggleWindowFloating,
-    (key: "Return", modifiers: [Super]): Spawn("/nix/store/nmmyb8ac95qkd13h610ppfg46imwvgxw-script/bin/script"),
     (key: "1", modifiers: [Super]): Workspace(1),
+    (key: "1", modifiers: [Super,Shift]): MoveToWorkspace(1),
+    (key: "h", modifiers: [Super,Shift]): Move(Left),
+    (key: "q", modifiers: [Super,Shift]): Close,
+    (key: "Space", modifiers: [Super]): ToggleTiling,
+    (key: "a", modifiers: [Super]): Spawn("/nix/store/lff0wf41q45mbcxba45gp71p11zk604i-my-script/bin/my-script"),
+    (key: "h", modifiers: [Super]): Focus(Left),
+    (key: "o", modifiers: [Super]): System(HomeFolder),
 }

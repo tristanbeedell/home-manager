@@ -1,7 +1,6 @@
 { pkgs, lib, config, ... }:
 let
-  inherit (lib)
-    concatMapAttrs mapAttrs' nameValuePair maintainers mkOption types;
+  inherit (lib) concatMapAttrs mapAttrs' nameValuePair mkOption types;
   inherit (types) submodule literalExpression attrsOf anything;
 
   ron = import ./ron.nix { inherit lib; };
@@ -17,7 +16,7 @@ let
   cfg = config.programs.cosmic;
 
 in {
-  meta.maintainers = with maintainers; [ tristan ];
+  meta.maintainers = with lib.hm.maintainers; [ tristan ];
   options.programs.cosmic = {
     enable = lib.mkEnableOption "COSMIC DE";
 

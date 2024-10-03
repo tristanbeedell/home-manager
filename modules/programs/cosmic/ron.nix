@@ -21,9 +21,9 @@ in rec {
   tuple = a: "(${concatStringsSep "," (map serialise a)})";
   enum = s:
     if isNull s.value then
-      s.type
+      s.name
     else
-      concatStrings [ s.type "(" (serialise s.value) ")" ];
+      concatStrings [ s.name "(" (serialise s.value) ")" ];
 
   # attrset -> struct
   _struct_kv = k: v:

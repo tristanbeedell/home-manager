@@ -1,12 +1,50 @@
-{ lib }:
+{ lib, ... }:
 let
   inherit (lib) types;
   ron = import ./ron.nix { inherit lib; };
+  inherit (builtins) mapAttrs attrValues concatLists;
 in rec {
 
-  Modifier = types.enum [ "Super" "Ctrl" "Alt" "Shift" ];
+  Modifiers = [ "Super" "Ctrl" "Alt" "Shift" ];
+  Modifier = types.enum Modifiers;
 
-  System = types.enum [
+  mal = f: a: concatLists (attrValues (mapAttrs f a));
+
+  /* *
+     Map bindings attrset to list
+
+     {
+       Super.Shift.q = ...;
+       Super.Alt.x = ...;
+     }
+     ->
+     [
+       {modifiers = ["Super" "Shift"]; key = "q"; action = ...;}
+       {modifiers = ["Super" "Alt"]; key = "x"; ... }
+     ]
+  */
+  mapBinds = binds: _mapBinds [ ] [ ] binds;
+
+  /* *
+     acc: accumulator of all action binds
+     mods: accumulator of modifier keys down one chain to an action
+  */
+  _mapBinds = acc: mods: value: mal (_mapMods acc mods) value;
+
+  _mapMods = acc: mods: key: value:
+    assert lib.typeOf key == "string";
+    assert lib.typeOf value == "set";
+    acc ++ (if Modifier.check key then
+      _mapBinds acc (mods ++ [ key ]) value
+    else
+      [ (_mapBind mods key value) ]);
+
+  _mapBind = modifiers: key: action: action // { inherit key modifiers; };
+
+  ActionsValueType =
+    types.nullOr (types.oneOf [ types.str types.int types.package ]);
+
+  System.type = types.enum [
     "AppLibrary"
     "BrightnessDown"
     "BrightnessUp"
@@ -29,17 +67,40 @@ in rec {
     "WorkspaceOverview"
   ];
 
-  Direction = types.enum [ "Left" "Right" "Up" "Down" ];
-  FocusDirection = types.enum [ "Left" "Right" "Up" "Down" "In" "Out" ];
-  ResizeDirection = types.enum [ "Inwards" "Outwards" ];
-  Orientation = types.enum [ "Horizontal" "Vertical" ];
-  u8 = types.coercedTo types.str lib.strings.toInt types.ints.u8;
-  none = types.mkOptionType {
+  Actions = mapAttrs (mkAction) ActionTypes;
+
+  mkAction = name: type:
+    type // {
+      _type = "action";
+      coerce = type.coerce or lib.id;
+      action = name;
+      __functor = self: value:
+        let
+          action = {
+            action = name;
+            inherit value;
+          };
+        in self // builtins.seq (assertValidActionValue action) action;
+    };
+
+  toString = action: ron.enum (toEnum (coerce action));
+
+  toEnum = { action, value, ... }: {
+    inherit value;
+    name = action;
+  };
+
+  Direction.type = types.enum [ "Left" "Right" "Up" "Down" ];
+  FocusDirection.type = types.enum [ "Left" "Right" "Up" "Down" "In" "Out" ];
+  ResizeDirection.type = types.enum [ "Inwards" "Outwards" ];
+  Orientation.type = types.enum [ "Horizontal" "Vertical" ];
+  u8.type = types.coercedTo types.str lib.strings.toInt types.ints.u8;
+  none.type = types.mkOptionType {
     name = "null";
     check = isNull;
   };
 
-  Actions = {
+  ActionTypes = {
     Close = none;
     Debug = none;
     Disable = none;
@@ -71,7 +132,7 @@ in rec {
     ToggleWindowFloating = none;
     Focus = FocusDirection;
     MigrateWorkspaceToOutput = Direction;
-    Move = Direction: Direction;
+    Move = Direction;
     MoveToOutput = Direction;
     MoveToWorkspace = u8;
     Orientation = Orientation;
@@ -80,44 +141,50 @@ in rec {
     SendToWorkspace = u8;
     SwitchOutput = Direction;
     System = System;
-    Spawn = types.either types.nonEmptyStr types.package;
     Workspace = u8;
+    Spawn = {
+      type = types.either types.nonEmptyStr types.package;
+      coerce = value:
+        ron.toQuotedString
+        (if types.package.check value then lib.getExe value else value);
+    };
   };
 
-  /* All actions but Spawn take an explicit enum value.
-     For this exception we coerce to quoted string.
-  */
   coerce = a:
-    if a.type == "Spawn" then
-      let
-        cmd =
-          if types.package.check a.value then lib.getExe a.value else a.value;
-      in {
-        inherit (a) type;
-        value = ron.toQuotedString cmd;
-      }
-    else
-      a;
+    let
+      datatype = lib.typeOf a;
+      action = if datatype == "set" then
+        if !a ? action then throw "COSMIC Action missing 'action'" else a.action
+      else if datatype == "string" then
+        a
+      else
+        throw "Cannot coerce ${datatype} to COSMIC Action";
+      fullaction = {
+        inherit action;
+        value = a.value or null;
+      };
+    in assert assertValidAction fullaction; {
+      inherit action;
+      value = Actions.${action}.coerce fullaction.value;
+    };
+
+  action = n: {
+    action = n;
+    value = null;
+  };
 
   ActionsNameType = types.enum (builtins.attrNames Actions);
 
-  assertValidActionName = a:
-    lib.assertMsg (Actions ? ${a.type})
-    "Invalid Cosmic keybind action: `${a.type}`. Valid values: `${ActionsNameType.description}`";
+  assertValidAction = a:
+    assertValidActionName a.action && assertValidActionValue a;
+
+  assertValidActionName = action:
+    lib.assertMsg (ActionsNameType.check action)
+    "Invalid Cosmic keybind action: `${action}`. Valid values: `${ActionsNameType.description}`";
 
   assertValidActionValue = a:
-    let type = Actions.${a.type};
+    let type = Actions.${a.action}.type;
     in lib.assertMsg (type.check a.value)
-    "Cosmic action `${a.type}` expects value: `${type.description}`";
-
-  check = ma:
-    let
-      a = if (builtins.typeOf ma == "set") then
-        ma
-      else {
-        type = ma;
-        value = null;
-      };
-    in assertValidActionName a && assertValidActionValue a;
+    "Cosmic action `${a.action}` expects value: `${type.description}`";
 
 }

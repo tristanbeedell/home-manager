@@ -19,17 +19,9 @@ let
 
   # map keybinding from list of attrset to hashmap of (mod,key): action
   _mapBindings = bindings:
-    map (inner: {
-      "${defineBinding inner}" = actionToString {
-        inherit (inner) value;
-        type = inner.action;
-      };
-    }) bindings;
+    map (inner: { "${defineBinding inner}" = actions.toString inner; })
+    bindings;
   mapBindings = bindings: assoc (_mapBindings bindings);
-
-  actionToString = action:
-    assert actions.check action;
-    ron.enum (actions.coerce action);
 
   cfg = config.programs.cosmic.input;
 in {
@@ -42,6 +34,14 @@ in {
           default = true;
           type = lib.types.bool;
           description = "Whether to enable the default COSMIC keybindings.";
+        };
+
+        binds = lib.mkOption {
+          default = { };
+          description = ''
+            A set of keybindings and actions for COSMIC DE.
+          '';
+          type = types.attrs;
         };
 
         keybindings = lib.mkOption {
@@ -72,25 +72,26 @@ in {
             [
               # Key + mod + Spawn action
               {
-                key = "Return";
-                modifiers = ["Super"];
-                action = {
-                  type = "Spawn";
-                  value = "kitty";
-                };
+                modifiers = [ "Super" ];
+                key = "g";
+                action = "Disable";
               }
-              # Only mod - activates if no key is pressed with the modifier
               {
-                modifiers = ["Super"];
-                action = {
-                  type = "Spawn";
-                  value = "wofi";
-                }
-              }
-              # Key only and plain action
-              {
+                modifiers = [ "Super" "Shift" ];
                 key = "g";
                 action = "ToggleWindowFloating";
+              }
+              {
+                modifiers = [ "Super" ];
+                key = "Return";
+                action = "Spawn";
+                value = pkgs.kitty;
+              }
+              {
+                modifiers = [ "Super" ];
+                key = "1";
+                action = "Workspace";
+                value = 1;
               }
             ]
           '';
@@ -101,13 +102,15 @@ in {
   };
 
   config = {
+    lib.cosmic = actions;
     programs.cosmic.settings = {
       "com.system76.CosmicSettings.Shortcuts".options =
-        (if cfg.keybindings != [ ] then {
-          custom = mapBindings cfg.keybindings;
-        } else
-          { })
-        // (if !cfg.defaultKeybindings then { defaults = "{}"; } else { });
+        (if cfg.keybindings == [ ] && cfg.binds == { } then
+          { }
+        else {
+          custom =
+            mapBindings (cfg.keybindings ++ (actions.mapBinds cfg.binds));
+        }) // (if !cfg.defaultKeybindings then { defaults = "{}"; } else { });
     };
   };
 
