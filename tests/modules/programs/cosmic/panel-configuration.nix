@@ -17,7 +17,6 @@
             anchor = "Top";
             output = "DP-1";
             autohide.enable = true;
-            background = [ 0.1 0.2 0.3 ];
           };
         };
         Dock = { applets = { center = [ "com.system76.CosmicAppList" ]; }; };
@@ -70,14 +69,6 @@
       assertFileContent \
         home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/autohide \
         ${pkgs.writeText "autohide" "None"}
-
-      assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/background \
-        ${pkgs.writeText "background" "Color([0.100000,0.200000,0.300000])"}
-
-      assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/background \
-        ${pkgs.writeText "background" "ThemeDefault"}
     '';
   };
 }

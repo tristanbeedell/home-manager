@@ -20,7 +20,6 @@ let
     panel.options // {
       output = mapPanelOutput panel.options.output;
       autohide = mapAutohide panel.options.autohide;
-      background = mapBackground panel.options.background;
     } // mapApplets panel.applets;
 
   mapPanelConfigs = panels:
@@ -55,21 +54,7 @@ let
         value = ron.toQuotedString output;
       };
 
-  colorType =
-    types.addCheck (types.listOf types.float) (v: builtins.length v == 3) // {
-      description = "List of [Red Greed Blue] float values from 0 to 1";
-    };
-
-  mapBackground = background:
-    if lib.typeOf background == "list" then
-      ron.enum {
-        name = "Color";
-        value = background;
-      }
-    else
-      background;
-  CosmicPanelBackground =
-    types.either (types.enum [ "ThemeDefault" "Dark" "Light" ]) colorType;
+  CosmicPanelBackground = types.enum [ "ThemeDefault" "Dark" "Light" ];
 
   AutoHide = types.submodule {
     options = {
