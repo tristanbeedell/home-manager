@@ -33,10 +33,13 @@ in {
     type = submodule {
       options = {
 
-        enableDefaultKeybindings = lib.mkOption {
-          default = true;
+        asDefaults = lib.mkOption {
+          default = false;
           type = lib.types.bool;
-          description = "Whether to enable the default COSMIC keybindings.";
+          description = ''
+            Whether to use these bindings as the defaults,
+            preventing cosmic-settings from overriding them.
+          '';
         };
 
         binds = lib.mkOption {
@@ -44,6 +47,11 @@ in {
           description = ''
             A set of keybindings and actions for COSMIC DE.
             There are utility functions available in `config.lib.cosmic.Actions`
+            Takes the shape of
+
+            <Modifier>.<Modifier>...<key> = {action = <Action>; value = <Value>;}
+
+            Some actions take a value.
           '';
           example = lib.literalExpression ''
             let inherit (config.lib.cosmic) Actions;
@@ -71,11 +79,8 @@ in {
         (if cfg.binds == { } then
           { }
         else {
-          custom = mapBindings (actions.mapBinds cfg.binds);
-        }) // (if cfg.enableDefaultKeybindings then
-          { }
-        else {
-          defaults = "{}";
+          ${if cfg.asDefaults then "defaults" else "custom"} =
+            mapBindings (actions.mapBinds cfg.binds);
         });
     };
   };

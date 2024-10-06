@@ -18,7 +18,8 @@ let
 in {
   meta.maintainers = with lib.hm.maintainers; [ tristan ];
   options.programs.cosmic = {
-    enable = lib.mkEnableOption "COSMIC DE";
+    enable =
+      lib.mkEnableOption "configuration for the Cosmic Desktop Environment";
 
     settings = mkOption {
       default = { };
