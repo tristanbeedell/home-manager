@@ -27,7 +27,7 @@
 
       assertFileContent \
         home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/name \
-        ${pkgs.writeText "plugins_wings" "Panel"}
+        ${pkgs.writeText "plugins_wings" ''"Panel"''}
 
       assertFileContent \
         home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings \
@@ -42,6 +42,10 @@
           pkgs.writeText "plugins_center"
           ''Some(["com.system76.CosmicAppList"])''
         }
+
+      assertFileContent \
+        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/keyboard_interactivity \
+        ${pkgs.writeText "keyboard_interactivity" "None"}
     '';
   };
 }

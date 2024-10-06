@@ -68,7 +68,7 @@ in {
             A set of keybindings and actions for the COSMIC DE.
             The list of actions and possible values can be found presently at: https://github.com/pop-os/cosmic-settings-daemon/blob/master/config/src/shortcuts/action.rs
           '';
-          example = types.literalExpression ''
+          example = lib.literalExpression ''
             [
               # Key + mod + Spawn action
               {
