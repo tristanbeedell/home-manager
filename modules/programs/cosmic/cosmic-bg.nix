@@ -1,7 +1,7 @@
 { pkgs, lib, config, ... }:
 let
   inherit (lib) concatMapAttrs mkOption types;
-  inherit (types) submodule either literalExpression attrsOf;
+  inherit (types) submodule either attrsOf;
 
   ron = import ./ron.nix { inherit lib; };
   inherit (ron) array toQuotedString serialise path;
@@ -38,7 +38,7 @@ in {
       options = {
         displays = mkOption {
           default = { };
-          example = literalExpression ''
+          example = lib.literalExpression ''
             {
               DP-1 = {
                 source = ./image.png;
