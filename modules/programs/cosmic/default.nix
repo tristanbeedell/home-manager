@@ -27,8 +27,21 @@ in {
           version = mkOption {
             type = types.str;
             default = "1";
+            description = ''
+              Configuration version number
+            '';
           };
-          options = mkOption { type = attrsOf anything; };
+          options = mkOption {
+            type = attrsOf anything;
+            description = ''
+              Options to set for this path.
+
+              Attrsets and Lists are converted best-effort into the Ron
+              configuration language used by Cosmic.
+              Strings will be used as-is. Remember that some strings
+              need to be quoted!
+            '';
+          };
         };
       });
       description = ''

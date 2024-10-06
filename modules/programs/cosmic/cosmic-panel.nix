@@ -70,6 +70,10 @@ in {
   options.programs.cosmic = {
     panels = mkOption {
       default = { };
+      description = ''
+        Cosmic Panel configuration.
+        You can have many panels in cosmic - beyond the default Panel and Dock!
+      '';
       example = lib.literalExpression ''
         Panel = {
           applets = {
@@ -94,14 +98,23 @@ in {
               options = {
                 start = mkOption {
                   type = types.listOf types.str;
+                  description = ''
+                    Applets shown at the start of the panel.
+                  '';
                   default = [ ];
                 };
                 center = mkOption {
                   type = types.listOf types.str;
+                  description = ''
+                    Applets shown at the center of the panel.
+                  '';
                   default = [ ];
                 };
                 end = mkOption {
                   type = types.listOf types.str;
+                  description = ''
+                    Applets shown at the end of the panel.
+                  '';
                   default = [ ];
                 };
               };
@@ -119,102 +132,105 @@ in {
                   type = PanelAnchor;
                   default = "Top";
                   description = ''
-                    edge which the panel is locked to
+                    Edge which the panel is locked to
                   '';
                 };
                 anchor_gap = mkOption {
                   type = types.bool;
                   default = false;
                   description = ''
-                    gap between the panel and the edge of the ouput
+                    Gap between the panel and the edge of the ouput
                   '';
                 };
                 layer = mkOption {
                   type = Layer;
                   default = "Top";
                   description = ''
-                    configured layer which the panel is on
+                    Configured layer which the panel is on
                   '';
                 };
                 keyboard_interactivity = mkOption {
                   type = KeyboardInteractivity;
                   default = "None";
                   description = ''
-                    configured interactivity level for the panel
+                    Configured interactivity level for the panel
                   '';
                 };
                 size = mkOption {
                   type = PanelSize;
                   default = "M";
                   description = ''
-                    configured size for the panel
+                    Configured size for the panel
                   '';
                 };
                 output = mkOption {
                   type = CosmicPanelOuput;
                   default = "All";
                   description = ''
-                    name of configured output (Intended for dock or panel), or None to place on active output (Intended for wrapping a single application)
+                    Name of configured output (Intended for dock or panel), or None to place on active output (Intended for wrapping a single application)
                   '';
                 };
                 background = mkOption {
                   type = CosmicPanelBackground;
                   default = "ThemeDefault";
                   description = ''
-                    customized background, or
+                    Customized background, or
                   '';
                 };
                 expand_to_edges = mkOption {
                   type = types.bool;
                   default = true;
                   description = ''
-                    whether the panel should stretch to the edges of output
+                    Whether the panel should stretch to the edges of output
                   '';
                 };
                 padding = mkOption {
                   type = types.ints.u32;
                   default = 4;
                   description = ''
-                    padding around the panel
+                    Padding around the panel
                   '';
                 };
                 spacing = mkOption {
                   type = types.ints.u32;
                   default = 4;
                   description = ''
-                    space between panel plugins
+                    Space between panel plugins
                   '';
                 };
                 border_radius = mkOption {
                   type = types.ints.u32;
+                  description = ''
+                    Smooth radius on corners of the panel.
+                  '';
                   default = 8;
                 };
                 exclusive_zone = mkOption {
                   type = types.bool;
                   default = true;
                   description = ''
-                    exclusive zone
+                    Exclusive zone
                   '';
                 };
                 autohide = mkOption {
                   type = AutoHide;
                   default = "None";
                   description = ''
-                    enable autohide feature with the transitions lasting the supplied wait time and duration in millis
+                    Enable autohide feature with the transitions lasting the supplied wait time and duration in millis
                   '';
                 };
                 margin = mkOption {
                   type = types.ints.u16;
                   default = 4;
                   description = ''
-                    margin between the panel and the edge of the output
+                    Margin between the panel and the edge of the output
                   '';
                 };
                 opacity = mkOption {
                   type = types.float;
                   default = 0.8;
                   description = ''
-                    opacity of the panel
+                    Opacity of the panel
                   '';
                 };
               };

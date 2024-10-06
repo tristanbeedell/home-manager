@@ -38,6 +38,9 @@ in {
       options = {
         displays = mkOption {
           default = { };
+          description = ''
+            Cosmic Wallpaper options on a display.
+          '';
           example = lib.literalExpression ''
             {
               DP-1 = {
@@ -47,14 +50,26 @@ in {
           '';
           type = attrsOf (submodule {
             options = {
-              source = mkOption { type = either types.path types.str; };
+              source = mkOption {
+                type = either types.path types.str;
+                description = ''
+                  The image source. Can be an individual image, or a folder for a slideshow.
+                '';
+              };
+              # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L79
               filter_by_theme = mkOption {
                 default = true;
+                description = ''
+                  Whether the images should be filtered by the active theme
+                '';
                 type = types.bool;
               };
               filter_method = mkOption {
                 default = "Lanczos";
                 # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L155
+                description = ''
+                  Mode used to scale images
+                '';
                 type = types.enum [ "Lanczos" "Linear" "Nearest" ];
               };
               sampling_method = mkOption {
@@ -74,11 +89,13 @@ in {
               };
               scaling = mkOption {
                 default = { };
+                description = "Image scaling mode";
                 type = submodule {
                   options = {
                     mode = mkOption {
                       default = "Zoom";
                       # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L188
+                      description = "Image scaling mode";
                       type = (types.enum [ "Zoom" "Stretch" "Fit" ]);
                     };
                     color = mkOption {
