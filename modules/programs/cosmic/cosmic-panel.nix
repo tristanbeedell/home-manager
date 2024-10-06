@@ -15,7 +15,21 @@ let
       })";
     plugins_center = "Some(${ron.stringArray applets.center})";
   };
-  mapPanel = panel: panel.options // mapApplets panel.applets;
+
+  mapPanelOutput = output:
+    if builtins.elem output OuputOpts then
+      output
+    else
+      ron.enum {
+        name = "Name";
+        value = ron.toQuotedString output;
+      };
+
+  mapPanel = panel:
+    panel.options // {
+      output = mapPanelOutput panel.options.output;
+    } // mapApplets panel.applets;
+
   mapPanelConfigs = panels:
     builtins.listToAttrs (map (name: {
       name = "com.system76.CosmicPanel.${name}";
@@ -35,9 +49,10 @@ let
   PanelSize = types.enum [ "XS" "S" "M" "L" "XL" ];
   Layer = types.enum [ "Background" "Bottom" "Top" "Overlay" ];
   KeyboardInteractivity = types.enum [ "None" "Exclusive" "OnDemand" ];
-  # TODO: allow name
-  CosmicPanelOuput = types.str;
-  # types.enum ["All" "Active" "Name(String)"];
+
+  OuputOpts = [ "All" "Active" ];
+  CosmicPanelOuput = types.either (types.enum OuputOpts) types.str;
+
   CosmicPanelBackground = types.str;
   # TODO: allow colour config
   # types.enum [
@@ -166,8 +181,11 @@ in {
                 output = mkOption {
                   type = CosmicPanelOuput;
                   default = "All";
+                  example = "DP-1";
                   description = ''
-                    Name of configured output (Intended for dock or panel), or None to place on active output (Intended for wrapping a single application)
+                    All outputs,
+                    Name of configured output (Intended for dock or panel),
+                    or Active to place on active output (Intended for wrapping a single application)
                   '';
                 };
                 background = mkOption {

@@ -13,7 +13,10 @@
               "com.system76.CosmicAppletAudio"
             ];
           };
-          options = { anchor = "Top"; };
+          options = {
+            anchor = "Top";
+            output = "DP-1";
+          };
         };
         Dock = { applets = { center = [ "com.system76.CosmicAppList" ]; }; };
       };
@@ -46,6 +49,14 @@
       assertFileContent \
         home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/keyboard_interactivity \
         ${pkgs.writeText "keyboard_interactivity" "None"}
+
+      assertFileContent \
+        home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/output \
+        ${pkgs.writeText "output" ''Name("DP-1")''}
+
+      assertFileContent \
+        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/output \
+        ${pkgs.writeText "output" "All"}
     '';
   };
 }
