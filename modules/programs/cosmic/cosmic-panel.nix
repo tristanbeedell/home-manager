@@ -16,18 +16,11 @@ let
     plugins_center = "Some(${ron.stringArray applets.center})";
   };
 
-  mapPanelOutput = output:
-    if builtins.elem output OuputOpts then
-      output
-    else
-      ron.enum {
-        name = "Name";
-        value = ron.toQuotedString output;
-      };
-
   mapPanel = panel:
     panel.options // {
       output = mapPanelOutput panel.options.output;
+      autohide = mapAutohide panel.options.autohide;
+      background = mapBackground panel.options.background;
     } // mapApplets panel.applets;
 
   mapPanelConfigs = panels:
@@ -53,34 +46,59 @@ let
   OuputOpts = [ "All" "Active" ];
   CosmicPanelOuput = types.either (types.enum OuputOpts) types.str;
 
-  CosmicPanelBackground = types.str;
-  # TODO: allow colour config
-  # types.enum [
-  #   /// theme default color with optional transparency
-  #   ThemeDefault,
-  #   /// theme default dark
-  #   Dark,
-  #   /// theme default light
-  #   Light,
-  #   /// RGBA
-  #   Color([f32; 3]),
-  # ];
+  mapPanelOutput = output:
+    if builtins.elem output OuputOpts then
+      output
+    else
+      ron.enum {
+        name = "Name";
+        value = ron.toQuotedString output;
+      };
 
-  # TODO: either "None" or AutoHide
-  AutoHide = types.str;
-  # Option<AutoHide>
-  # pub struct AutoHide {
-  #     /// time in milliseconds without pointer focus before hiding
-  # default 1000
-  #     pub wait_time: u32,
-  #     /// time in milliseconds that it should take to transition
-  # default 200
-  #     pub transition_time: u32,
-  #     /// size of the handle in pixels
-  #     /// should be > 0
-  # default 4
-  #     pub handle_size: u32,
-  # }
+  colorType =
+    types.addCheck (types.listOf types.float) (v: builtins.length v == 3) // {
+      description = "List of [Red Greed Blue] float values from 0 to 1";
+    };
+
+  mapBackground = background:
+    if lib.typeOf background == "list" then
+      ron.enum {
+        name = "Color";
+        value = background;
+      }
+    else
+      background;
+  CosmicPanelBackground =
+    types.either (types.enum [ "ThemeDefault" "Dark" "Light" ]) colorType;
+
+  AutoHide = types.submodule {
+    options = {
+      enable = lib.mkEnableOption "autohide";
+      wait_time = mkOption {
+        type = types.ints.u32;
+        description =
+          "time in milliseconds without pointer focus before hiding";
+        default = 1000;
+      };
+      transition_time = mkOption {
+        default = 200;
+        type = types.ints.u32;
+        description = "time in milliseconds that it should take to transition";
+      };
+      handle_size = mkOption {
+        description = "size of the handle in pixels";
+        default = 4;
+        type = types.ints.u32;
+      };
+    };
+  };
+
+  mapAutohide = opt:
+    (if !opt.enable then
+      "None"
+    else
+      ron.option (builtins.removeAttrs opt [ "enable" ]));
+
 in {
   options.programs.cosmic = {
     panels = mkOption {
@@ -192,7 +210,7 @@ in {
                   type = CosmicPanelBackground;
                   default = "ThemeDefault";
                   description = ''
-                    Customized background, or
+                    Customized background, or use Theme.
                   '';
                 };
                 expand_to_edges = mkOption {
@@ -232,7 +250,7 @@ in {
                 };
                 autohide = mkOption {
                   type = AutoHide;
-                  default = "None";
+                  default = { };
                   description = ''
                     Enable autohide feature with the transitions lasting the supplied wait time and duration in millis
                   '';

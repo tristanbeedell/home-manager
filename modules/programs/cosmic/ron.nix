@@ -25,6 +25,15 @@ in rec {
     else
       concatStrings [ s.name "(" (serialise s.value) ")" ];
 
+  option = value:
+    if isNull value then
+      "None"
+    else
+      enum {
+        name = "Some";
+        inherit value;
+      };
+
   # attrset -> struct
   _struct_kv = k: v:
     if v == null then "" else (concatStringsSep ": " [ k (serialise v) ]);
@@ -47,7 +56,7 @@ in rec {
     # can't assume quoted string, sometimes it's a Rust enum
     string = toString;
     path = path;
-    null = toString;
+    null = _: "None";
     set = struct;
     list = array;
   };
