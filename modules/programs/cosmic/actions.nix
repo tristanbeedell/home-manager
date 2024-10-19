@@ -23,7 +23,12 @@ in rec {
        {modifiers = ["Super" "Alt"]; key = "x"; ... }
      ]
   */
-  mapBinds = binds: _mapBinds [ ] [ ] binds;
+  mapBinds = binds: lib.pipe binds [ (_mapAllBinds) (map removeMetadata) ];
+
+  removeMetadata = bind:
+    builtins.removeAttrs bind [ "__functor" "_type" "coerce" "type" ];
+
+  _mapAllBinds = _mapBinds [ ] [ ];
 
   /* *
      acc: accumulator of all action binds
