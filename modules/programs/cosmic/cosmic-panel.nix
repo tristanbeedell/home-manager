@@ -90,10 +90,12 @@ in {
       default = { };
       description = ''
         Cosmic Panel configuration.
-        You can have many panels in cosmic - beyond the default Panel and Dock!
+        The default panels "Panel" and "Dock" are set up by default.
+        I recommend calling your panels something different, so that these files do not collide.
+        This will prevent cosmic-settings overriding your panel configuration.
       '';
       example = lib.literalExpression ''
-        Panel = {
+        Bar = {
           applets = {
             start = [ "com.system76.CosmicAppletWorkspaces" ];
             end = [
@@ -103,7 +105,7 @@ in {
           };
           options = { anchor = "Top"; };
         };
-        Dock = { applets = { center = [ "com.system76.CosmicAppList" ]; }; };
+        Dash = { applets = { center = [ "com.system76.CosmicAppList" ]; }; };
       '';
       type = attrsOf (submodule {
         options = {

@@ -24,50 +24,53 @@
     };
 
     nmt.script = ''
+      config=home-files/.config/cosmic/com.system76.CosmicPanel/v1
+      panel=home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1
+      dock=home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel/v1/entries \
+        $config/entries \
         ${pkgs.writeText "entries" ''["Dock","Panel"]''}
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/name \
+        $panel/name \
         ${pkgs.writeText "plugins_wings" ''"Panel"''}
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/plugins_wings \
+        $panel/plugins_wings \
         ${
           pkgs.writeText "plugins_wings" ''
             Some((["com.system76.CosmicAppletWorkspaces"],["com.system76.CosmicAppletTime","com.system76.CosmicAppletAudio"]))''
         }
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/plugins_center \
+        $dock/plugins_center \
         ${
           pkgs.writeText "plugins_center"
           ''Some(["com.system76.CosmicAppList"])''
         }
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/keyboard_interactivity \
+        $dock/keyboard_interactivity \
         ${pkgs.writeText "keyboard_interactivity" "None"}
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/output \
+        $panel/output \
         ${pkgs.writeText "output" ''Name("DP-1")''}
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/output \
+        $dock/output \
         ${pkgs.writeText "output" "All"}
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Panel/v1/autohide \
+        $panel/autohide \
         ${
           pkgs.writeText "autohide"
           "Some((handle_size: 4, transition_time: 200, wait_time: 1000))"
         }
 
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicPanel.Dock/v1/autohide \
+        $dock/autohide \
         ${pkgs.writeText "autohide" "None"}
     '';
   };

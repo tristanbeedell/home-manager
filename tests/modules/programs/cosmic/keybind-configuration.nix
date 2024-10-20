@@ -20,9 +20,7 @@ in {
     nmt.script = ''
       assertFileContent \
         home-files/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom \
-        ${
-          ./keybinds.ron
-        }
+        ${./keybinds.ron}
     '';
   };
 }
