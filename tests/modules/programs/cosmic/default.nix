@@ -4,4 +4,5 @@
   cosmic-input-bind-configuration = ./input-bind-configuration.nix;
   cosmic-wallpaper-configuration = ./wallpaper-configuration.nix;
   cosmic-panel-configuration = ./panel-configuration.nix;
+  cosmic-comp-configuration = ./comp-configuration.nix;
 }

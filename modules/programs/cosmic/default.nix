@@ -50,8 +50,11 @@ in {
       '';
       example = lib.literalExpression ''
         {
-          "com.system76.CosmicPanel.Dock" = {
-            option.opacity = 0.8;
+          "com.system76.CosmicTk".options = {
+            show_maximize = true;
+          };
+          "com.system76.CosmicEdit".options = {
+            auto_indent = true;
           };
         };
       '';
@@ -64,5 +67,6 @@ in {
       cfg.settings;
   };
 
-  imports = [ ./cosmic-panel.nix ./cosmic-input.nix ./cosmic-bg.nix ];
+  imports =
+    [ ./cosmic-panel.nix ./cosmic-input.nix ./cosmic-bg.nix ./cosmic-comp.nix ];
 }

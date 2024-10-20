@@ -115,7 +115,7 @@ in {
     };
   };
 
-  config = {
+  config = lib.mkIf (cfg.displays != { }) {
     programs.cosmic.settings."com.system76.CosmicBackground".options =
       mapBackgrounds cfg.displays;
   };
