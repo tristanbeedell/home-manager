@@ -149,128 +149,69 @@ let
     };
   };
 
-  # stole some descriptions from nixos services.xserver.xkb
-  XkbConfig = types.submodule {
-    options = {
-      rules = mkOption {
-        type = ron.types.str;
-        default = "";
-        description = ''
-          TODO: I haven't found documentation on how this setting works.
-        '';
-      };
-      model = mkOption {
-        type = ron.types.str;
-        default = "";
-        description = ''
-          X keyboard model.
-        '';
-      };
-      layout = mkOption {
-        type = ron.types.str;
-        default = "us";
-        description = ''
-          X keyboard layout, or multiple keyboard layouts separated by commas.
-        '';
-      };
-      variant = mkOption {
-        type = ron.types.str;
-        default = "";
-        example = "colemak";
-        description = ''
-          X keyboard variant.
-        '';
-      };
-      options = mkOption {
-        type = ron.types.option ron.types.str;
-        default = null;
-        description = ''
-          X keyboard options; layout switching goes here.
-        '';
-        example = "grp:caps_toggle,grp_led:scroll";
-      };
-      repeat_delay = mkOption {
-        type = types.ints.u32;
-        default = 600;
-        description = ''
-          Delay when holding key before key repeats in milliseconds
-        '';
-      };
-      repeat_rate = mkOption {
-        type = types.ints.u32;
-        default = 25;
-        description = ''
-          Key repeat rate in milliseconds
-        '';
-      };
-    };
-  };
-
 in {
   # https://github.com/pop-os/cosmic-comp/blob/b8c429facbacbcd0cdda94f717c29b58d9f65414/cosmic-comp-config/src/lib.rs#L12
   options.programs.cosmic.comp = {
-    workspaces = WorkspaceConfig;
-    input_default = mkOption {
+    settings = {
+      workspaces = WorkspaceConfig;
+      input_default = mkOption {
+        description = ''
+          Default configuration for pointer devices.
+        '';
+        type = types.nullOr InputConfig;
+        default = null;
+      };
+      input_touchpad = mkOption {
+        type = types.nullOr InputConfig;
+        default = null;
+        description = ''
+          Default configuration for touchpad devices.
+        '';
+      };
+      input_devices = mkOption {
+        default = { };
+        type = types.attrsOf InputConfig;
+        description = ''
+          Configuration for other pointer devices.
+        '';
+      };
+      autotile = mkEnableOption "Autotiling";
+      autotile_behavior = mkOption {
+        type = types.enum [ "Global" "PerWorkspace" ];
+        description = ''
+          Determines the behavior of the autotile variable
+          If set to Global, autotile applies to all windows in all workspaces
+          If set to PerWorkspace, autotile only applies to new windows, and new workspaces
+        '';
+        default = "Global";
+      };
+      active_hint = mkEnableOption "Active hint";
+      focus_follows_cursor = mkEnableOption
+        "changing keyboard focus to windows when the cursor passes into them";
+      cursor_follows_focus = mkEnableOption
+        "warping the cursor to the focused window when focus changes due to keyboard input";
+      focus_follows_cursor_delay = mkOption {
+        default = 250;
+        description = ''
+          The delay in milliseconds before focus follows mouse (if enabled)
+        '';
+        type = types.int;
+      };
+      descale_xwayland = mkEnableOption "Let X11 applications scale themselves";
+    };
+    extraConfig = mkOption {
+      type = with types; attrsOf anything;
       description = ''
-        Default configuration for pointer devices.
+        Extra Cosmic Comp configuration options.
       '';
-      type = types.nullOr InputConfig;
       default = { };
     };
-    input_touchpad = mkOption {
-      type = types.nullOr InputConfig;
-      default = { };
-      description = ''
-        Default configuration for touchpad devices.
-      '';
-    };
-    input_devices = mkOption {
-      default = { };
-      type = types.attrsOf InputConfig;
-      description = ''
-        Configuration for other pointer devices.
-      '';
-    };
-    xkb_config = mkOption {
-      description = ''
-        Keyboard layout configuration.
-
-        By default, COSMIC loads the system xkb config.
-
-        For options see
-        `nix shell nixpkgs#xkeyboard_config --command sh -c 'man xkeyboard-config'`
-      '';
-      type = types.nullOr XkbConfig;
-      default = null;
-    };
-    autotile = mkEnableOption "Autotiling";
-    autotile_behavior = mkOption {
-      type = types.enum [ "Global" "PerWorkspace" ];
-      description = ''
-        Determines the behavior of the autotile variable
-        If set to Global, autotile applies to all windows in all workspaces
-        If set to PerWorkspace, autotile only applies to new windows, and new workspaces
-      '';
-      default = "Global";
-    };
-    active_hint = mkEnableOption "Active hint";
-    focus_follows_cursor = mkEnableOption
-      "changing keyboard focus to windows when the cursor passes into them";
-    cursor_follows_focus = mkEnableOption
-      "warping the cursor to the focused window when focus changes due to keyboard input";
-    focus_follows_cursor_delay = mkOption {
-      default = 250;
-      description = ''
-        The delay in milliseconds before focus follows mouse (if enabled)
-      '';
-      type = types.int;
-    };
-    descale_xwayland = mkEnableOption "Let X11 applications scale themselves";
   };
 
   config = let
     cfg = config.programs.cosmic.comp;
-    mapCfg = cfg:
+    mapConfig = cfg: (mapSettings cfg.settings) // cfg.extraConfig;
+    mapSettings = cfg:
       cfg // {
         input_default = mapInputCfg cfg.input_default;
         input_touchpad = mapInputCfg cfg.input_touchpad;
@@ -289,7 +230,7 @@ in {
         };
   in {
     programs.cosmic.settings = {
-      "com.system76.CosmicComp".options = mapCfg cfg;
+      "com.system76.CosmicComp".options = mapConfig cfg;
     };
   };
 }

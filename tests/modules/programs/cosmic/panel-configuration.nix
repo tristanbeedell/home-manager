@@ -18,6 +18,7 @@
             output = "DP-1";
             autohide.enable = true;
           };
+          extraConfig = { some-option = "Something"; };
         };
         Dock = { applets = { center = [ "com.system76.CosmicAppList" ]; }; };
       };
@@ -35,6 +36,10 @@
       assertFileContent \
         $panel/name \
         ${pkgs.writeText "plugins_wings" ''"Panel"''}
+
+      assertFileContent \
+        $panel/some-option \
+        ${pkgs.writeText "some-option" "Something"}
 
       assertFileContent \
         $panel/plugins_wings \

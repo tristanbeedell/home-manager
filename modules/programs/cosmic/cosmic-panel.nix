@@ -16,34 +16,11 @@ let
     plugins_center = "Some(${ron.stringArray applets.center})";
   };
 
-  mapPanel = panel:
+  mapPanelOptions = panel:
     panel.options // {
       output = mapPanelOutput panel.options.output;
       autohide = mapAutohide panel.options.autohide;
     } // mapApplets panel.applets;
-
-  mapPanelConfigs = panels:
-    builtins.listToAttrs (map (name: {
-      name = "com.system76.CosmicPanel.${name}";
-      value.options = mapPanel panels.${name} // {
-        name = ron.toQuotedString name;
-      };
-    }) (builtins.attrNames panels));
-
-  mapPanelEntries = panels: {
-    "com.system76.CosmicPanel".options.entries =
-      ron.stringArray (builtins.attrNames cfg.panels);
-  };
-
-  mapPanels = panels: (mapPanelEntries panels) // (mapPanelConfigs panels);
-
-  PanelAnchor = types.enum [ "Left" "Right" "Top" "Bottom" ];
-  PanelSize = types.enum [ "XS" "S" "M" "L" "XL" ];
-  Layer = types.enum [ "Background" "Bottom" "Top" "Overlay" ];
-  KeyboardInteractivity = types.enum [ "None" "Exclusive" "OnDemand" ];
-
-  OuputOpts = [ "All" "Active" ];
-  CosmicPanelOuput = types.either (types.enum OuputOpts) types.str;
 
   mapPanelOutput = output:
     if builtins.elem output OuputOpts then
@@ -54,6 +31,13 @@ let
         value = ron.toQuotedString output;
       };
 
+  OuputOpts = [ "All" "Active" ];
+
+  PanelAnchor = types.enum [ "Left" "Right" "Top" "Bottom" ];
+  PanelSize = types.enum [ "XS" "S" "M" "L" "XL" ];
+  Layer = types.enum [ "Background" "Bottom" "Top" "Overlay" ];
+  KeyboardInteractivity = types.enum [ "None" "Exclusive" "OnDemand" ];
+  CosmicPanelOuput = types.either (types.enum OuputOpts) types.str;
   CosmicPanelBackground = types.enum [ "ThemeDefault" "Dark" "Light" ];
 
   AutoHide = types.submodule {
@@ -259,13 +243,43 @@ in {
               };
             };
           };
+          extraConfig = mkOption {
+            description = ''
+              Extra configuration options for this panel.
+            '';
+            type = with types; either str (attrsOf anything);
+            default = { };
+          };
         };
       });
     };
 
   };
   config = {
-    programs.cosmic.settings =
-      if cfg.panels == { } then { } else mapPanels cfg.panels;
+    programs.cosmic.settings = if cfg.panels == { } then
+      { }
+    else
+      let
+        mapPanel = name: panel:
+          (mapPanelOptions panel) // (mapExtraConfig panel.extraConfig) // {
+            name = ron.toQuotedString name;
+          };
+
+        mapPanelConfigs = panels:
+          (lib.concatMapAttrs (name: value: {
+            "com.system76.CosmicPanel.${name}".options = mapPanel name value;
+          }) panels);
+
+        mapExtraConfig = builtins.mapAttrs (name: value: ron.serialise value);
+
+        mapPanelEntries = panels: {
+          "com.system76.CosmicPanel".options.entries =
+            ron.stringArray (builtins.attrNames cfg.panels);
+        };
+
+        mapPanels = panels:
+          (mapPanelEntries panels) // (mapPanelConfigs panels);
+
+      in mapPanels cfg.panels;
   };
 }
