@@ -3,34 +3,17 @@ let
   inherit (lib) mkOption mkEnableOption types;
   ron = import ./ron.nix { inherit lib; };
 
-  quotedString = let
-  in (types.coercedTo types.str ron.toQuotedString types.str) // {
-    description = "string";
-  };
-
-  ronOption = type:
-    let
-      wantedType = types.nullOr (type);
-      coerce = s:
-        if type.name == "str" then
-          if isNull s then "None" else (ron.option (ron.toQuotedString s))
-        else
-          ron.option s;
-    in (types.coercedTo (wantedType) (coerce) types.str) // {
-      description = wantedType.description;
-    };
-
   mkEnableRonOption = name:
     mkOption {
       default = null;
       example = true;
       description = "Whether to enable ${name}. null = Cosmic's Default";
-      type = ronOption types.bool;
+      type = ron.types.option types.bool;
     };
 
   AccelConfig = {
     profile = mkOption {
-      type = ronOption (types.enum [ "Flat" "Adaptive" ]);
+      type = ron.types.option (types.enum [ "Flat" "Adaptive" ]);
       default = null;
       description = ''
         Mouse acceleration profile.
@@ -55,8 +38,8 @@ let
       description = ''
         This applies to touchpads. For mice, use `null`.
       '';
-      type =
-        ronOption (types.enum [ "NoScroll" "TwoFinger" "Edge" "OnButtonDown" ]);
+      type = ron.types.option
+        (types.enum [ "NoScroll" "TwoFinger" "Edge" "OnButtonDown" ]);
       default = null;
     };
     natural_scroll =
@@ -65,11 +48,11 @@ let
       description = ''
         I have no idea what this option does.
       '';
-      type = ronOption types.ints.u32;
+      type = ron.types.option types.ints.u32;
       default = null;
     };
     scroll_factor = mkOption {
-      type = ronOption types.float;
+      type = ron.types.option types.float;
       default = 1.0;
       description = ''
         Scrolling Speed.
@@ -85,7 +68,8 @@ let
     enabled = mkEnableOption "Tap to click" // { default = true; };
     button_map = mkOption {
       default = "LeftRightMiddle";
-      type = ronOption (types.enum [ "LeftRightMiddle" "LeftMiddleRight" ]);
+      type =
+        ron.types.option (types.enum [ "LeftRightMiddle" "LeftMiddleRight" ]);
       description = ''
         - LeftRightMiddle: Default (matching click_method)
         - LeftMiddleRight: Swaps middle and secondary click when tapping touchpad with multiple fingers.
@@ -107,7 +91,7 @@ let
       };
       acceleration = AccelConfig;
       calibration = mkOption {
-        type = ronOption (types.listOf types.float) # [f32; 6]
+        type = ron.types.option (types.listOf types.float) # [f32; 6]
         ;
         default = null;
         description = ''
@@ -117,7 +101,7 @@ let
         '';
       };
       click_method = mkOption {
-        type = ronOption (types.enum [ "ButtonAreas" "Clickfinger" ]);
+        type = ron.types.option (types.enum [ "ButtonAreas" "Clickfinger" ]);
         default = null;
         description = ''
           - Clickfinger = Secondary click with two fingers and middle-click with three fingers.
@@ -129,7 +113,7 @@ let
         "left handed mode. Switches left and right click buttons.";
       middle_button_emulation = mkEnableRonOption "middle button emulation";
       rotation_angle = mkOption {
-        type = ronOption types.ints.u32;
+        type = ron.types.option types.ints.u32;
         default = null;
         description = ''
           Rotation of input in degrees
@@ -138,7 +122,7 @@ let
       scroll_config = ScrollConfig;
       tap_config = TapConfig;
       map_to_output = mkOption {
-        type = ronOption types.str;
+        type = ron.types.option types.str;
         default = null;
         description = ''
           TODO: I haven't found documentation on how this setting works.
@@ -169,28 +153,28 @@ let
   XkbConfig = types.submodule {
     options = {
       rules = mkOption {
-        type = quotedString;
+        type = ron.types.str;
         default = "";
         description = ''
           TODO: I haven't found documentation on how this setting works.
         '';
       };
       model = mkOption {
-        type = quotedString;
+        type = ron.types.str;
         default = "";
         description = ''
           X keyboard model.
         '';
       };
       layout = mkOption {
-        type = quotedString;
+        type = ron.types.str;
         default = "us";
         description = ''
           X keyboard layout, or multiple keyboard layouts separated by commas.
         '';
       };
       variant = mkOption {
-        type = quotedString;
+        type = ron.types.str;
         default = "";
         example = "colemak";
         description = ''
@@ -198,7 +182,7 @@ let
         '';
       };
       options = mkOption {
-        type = ronOption types.str;
+        type = ron.types.option ron.types.str;
         default = null;
         description = ''
           X keyboard options; layout switching goes here.

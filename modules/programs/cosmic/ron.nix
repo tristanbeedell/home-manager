@@ -2,12 +2,12 @@
 let
   inherit (lib)
     filterAttrs concatStrings concatStringsSep mapAttrsToList concatLists
-    foldlAttrs concatMapAttrs mapAttrs' nameValuePair boolToString maintainers
-    mkOption types;
+    foldlAttrs boolToString;
   inherit (builtins) typeOf toString stringLength;
-in rec {
+
   # list -> array
   array = a: "[${concatStringsSep "," (map serialise a)}]";
+
   # attrset -> hashmap
   _assoc = a: mapAttrsToList (name: val: "${name}: ${val},") a;
   assoc = a: ''
@@ -45,10 +45,14 @@ in rec {
         _struct_kv k v) "" s;
   _struct_filt = s: _struct_concat (filterAttrs (k: v: v != null) s);
   struct = s: "(${_struct_filt s})";
+
   toQuotedString = s: ''"${toString s}"'';
+
+  # this is an enum, but use string interp to make sure it's put in the nix store
   path = p: ''Path("${p}")'';
 
-  # make an attrset for struct serialisation
+  # attrset for best-effort serialisation of nix types
+  # currently, no way to differentiate between enums and structs
   serialisers = {
     int = toString;
     float = toString;
@@ -62,4 +66,23 @@ in rec {
   };
 
   serialise = v: serialisers.${typeOf v} v;
+
+in {
+  inherit array assoc tuple stringArray serialise option path struct
+    toQuotedString enum;
+
+  # some handy wrapper types, to reduce transformation effort in modules producing Ron
+  types = {
+    # string type, but implicitly wraps in quote marks for usage in Ron
+    str = (lib.types.coercedTo lib.types.str toQuotedString lib.types.str) // {
+      description = "string";
+    };
+
+    # takes a (non submodule) type, and implicitly wraps in Rust Option<> type
+    option = type:
+      let wantedType = lib.types.nullOr (type);
+      in (lib.types.coercedTo (wantedType) (option) lib.types.str) // {
+        description = wantedType.description;
+      };
+  };
 }

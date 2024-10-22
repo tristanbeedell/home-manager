@@ -62,6 +62,6 @@
     ${assertFileContent "workspaces"
     "(workspace_layout: Vertical, workspace_mode: OutputBound)"}
     ${assertFileContent "xkb_config" ''
-    (layout: "gb", model: "", options: None, repeat_delay: 600, repeat_rate: 25, rules: "", variant: "")''}
+      (layout: "gb", model: "", options: None, repeat_delay: 600, repeat_rate: 25, rules: "", variant: "")''}
   '';
 }

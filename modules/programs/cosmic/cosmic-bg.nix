@@ -87,25 +87,19 @@ in {
                   How often to change image in seconds.
                 '';
               };
-              scaling = mkOption {
-                default = { };
-                description = "Image scaling mode";
-                type = submodule {
-                  options = {
-                    mode = mkOption {
-                      default = "Zoom";
-                      # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L188
-                      description = "Image scaling mode";
-                      type = (types.enum [ "Zoom" "Stretch" "Fit" ]);
-                    };
-                    color = mkOption {
-                      description = ''
-                        The colour to display around the background image when using Fit scaling mode.
-                      '';
-                      default = [ 0.0 0.0 0.0 ];
-                      type = types.listOf types.float;
-                    };
-                  };
+              scaling = {
+                mode = mkOption {
+                  default = "Zoom";
+                  # https://github.com/pop-os/cosmic-bg/blob/584f6b3c0454396df25d36c6c2b59b018946e81e/config/src/lib.rs#L188
+                  description = "Image scaling mode";
+                  type = (types.enum [ "Zoom" "Stretch" "Fit" ]);
+                };
+                color = mkOption {
+                  description = ''
+                    The colour to display around the background image when using Fit scaling mode.
+                  '';
+                  default = [ 0.0 0.0 0.0 ];
+                  type = types.listOf types.float;
                 };
               };
             };

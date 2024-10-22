@@ -1,9 +1,7 @@
 { lib, config, ... }:
 let
-  inherit (builtins) typeOf;
-
   inherit (lib) mkOption types;
-  inherit (types) listOf submodule nullOr either;
+  inherit (types) submodule;
 
   ron = import ./ron.nix { inherit lib; };
   inherit (ron) toQuotedString;
