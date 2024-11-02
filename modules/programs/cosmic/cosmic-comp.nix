@@ -176,15 +176,6 @@ in {
         '';
       };
       autotile = mkEnableOption "Autotiling";
-      autotile_behavior = mkOption {
-        type = types.enum [ "Global" "PerWorkspace" ];
-        description = ''
-          Determines the behavior of the autotile variable
-          If set to Global, autotile applies to all windows in all workspaces
-          If set to PerWorkspace, autotile only applies to new windows, and new workspaces
-        '';
-        default = "Global";
-      };
       active_hint = mkEnableOption "Active hint";
       focus_follows_cursor = mkEnableOption
         "changing keyboard focus to windows when the cursor passes into them";

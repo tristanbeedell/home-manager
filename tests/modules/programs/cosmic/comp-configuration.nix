@@ -5,7 +5,6 @@
       settings = {
         active_hint = true;
         autotile = true;
-        autotile_behavior = "PerWorkspace";
         input_touchpad = { acceleration = { profile = "Adaptive"; }; };
       };
       extraConfig = { some-setting = "Something"; };
@@ -25,7 +24,6 @@
 
     ${assertFileContent "active_hint" "true"}
     ${assertFileContent "autotile" "true"}
-    ${assertFileContent "autotile_behavior" "PerWorkspace"}
     ${assertFileContent "input_devices" "()"}
     assertFileExists $config/input_default
     assertFileExists $config/input_touchpad
