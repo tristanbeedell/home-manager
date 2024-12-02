@@ -32,13 +32,12 @@
             key = "Space";
             action = "ToggleTiling";
           }
-          # this test was flakey because the hash kept changing
-          # {
-          #   modifiers = [ "Super" ];
-          #   key = "a";
-          #   action = "Spawn";
-          #   value = (pkgs.writeShellScriptBin "my-script" "");
-          # }
+          {
+            modifiers = [ "Super" ];
+            key = "a";
+            action = "Spawn";
+            value = (pkgs.writeShellScriptBin "my-script" "");
+          }
           {
             modifiers = [ "Super" ];
             key = "h";
@@ -56,8 +55,10 @@
     };
 
     nmt.script = ''
+      bindsFile="home-files/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"
+      normalisedBindsFile=$(normalizeStorePaths $bindsFile)
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom \
+        $normalisedBindsFile \
         ${./keybinds.ron}
     '';
   };
