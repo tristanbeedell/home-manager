@@ -77,7 +77,8 @@ in {
                 description = ''
                   The key which will trigger the action, when the modifiers are held.
                 '';
-                type = types.str;
+                type = types.nullOr types.str;
+                default = null;
               };
               action = mkOption {
                 description = ''

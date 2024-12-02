@@ -13,13 +13,19 @@ in {
           Super."1" = Actions.Workspace 1;
           Super.Shift."1" = Actions.MoveToWorkspace "1";
           Super."o" = Actions.System "HomeFolder";
-        };
+          Super.a = Actions.Spawn (pkgs.writeShellScriptBin "my-script" "");
+        } ++ [{
+          modifiers = [ "Super" ];
+          action = "Disable";
+        }];
       };
     };
 
     nmt.script = ''
+      bindsFile="home-files/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"
+      normalisedBindsFile=$(normalizeStorePaths $bindsFile)
       assertFileContent \
-        home-files/.config/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom \
+        $normalisedBindsFile \
         ${./keybinds.ron}
     '';
   };

@@ -7,4 +7,5 @@
     (key: "a", modifiers: [Super]): Spawn("/nix/store/00000000000000000000000000000000-my-script/bin/my-script"),
     (key: "h", modifiers: [Super]): Focus(Left),
     (key: "o", modifiers: [Super]): System(HomeFolder),
+    (modifiers: [Super]): Disable,
 }

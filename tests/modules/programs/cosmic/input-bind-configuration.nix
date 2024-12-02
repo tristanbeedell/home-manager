@@ -50,6 +50,10 @@
             action = "System";
             value = "HomeFolder";
           }
+          {
+            modifiers = [ "Super" ];
+            action = "Disable";
+          }
         ];
       };
     };
